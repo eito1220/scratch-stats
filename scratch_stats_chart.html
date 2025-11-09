@@ -43,27 +43,19 @@
   <canvas id="myChart"></canvas>
 
   <script>
-  async function loadStats() {
-  const username = "eito1220"; // あなたのScratchのユーザー名
-  const proxy = "https://thingproxy.freeboard.io/fetch/";
-  const apiUrl = `https://api.scratch.mit.edu/users/${username}/projects`;
-
-  const res = await fetch(proxy + apiUrl);
-  const data = await res.json();
-  console.log(data);
-}
-
+    async function loadStats() {
+      const username = "eito1220"; // あなたのScratchユーザー名
+      const apiUrl = `https://api.scratch.mit.edu/users/${username}/projects`;
+      const proxy = "https://api.allorigins.win/raw?url="; // ← 安定したCORS回避サーバー
 
       try {
-        console.log("データ取得中:", proxy + apiUrl);
-        const res = await fetch(proxy + apiUrl);
+        console.log("取得中:", proxy + encodeURIComponent(apiUrl));
+        const res = await fetch(proxy + encodeURIComponent(apiUrl));
 
-        if (!res.ok) {
-          throw new Error(`HTTPエラー: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTPエラー: ${res.status}`);
 
         const projects = await res.json();
-        console.log("取得したデータ:", projects);
+        console.log("取得成功:", projects);
 
         if (!Array.isArray(projects) || projects.length === 0) {
           alert("プロジェクトデータが見つかりません。ユーザー名を確認してください。");
@@ -71,6 +63,7 @@
         }
 
         const ctx = document.getElementById("myChart").getContext("2d");
+
         new Chart(ctx, {
           type: "bar",
           data: {
@@ -86,20 +79,21 @@
           options: {
             responsive: true,
             scales: {
-              y: {
-                beginAtZero: true
-              }
+              y: { beginAtZero: true }
             }
           }
         });
+
       } catch (err) {
         console.error("読み込み失敗:", err);
-        alert("データ取得に失敗しました。プロキシが一時的に停止している可能性があります。");
+        alert("データ取得に失敗しました。もう一度試してください。");
       }
     }
   </script>
 </body>
 </html>
+
+
 
 
 
