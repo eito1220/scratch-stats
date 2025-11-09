@@ -43,10 +43,16 @@
   <canvas id="myChart"></canvas>
 
   <script>
-    async function loadStats() {
-      const username = "eito1220"; // ← あなたのScratchユーザー名
-      const proxy = "https://thingproxy.freeboard.io/fetch/";
-      const apiUrl = `https://api.scratch.mit.edu/users/${username}/projects`;
+  async function loadStats() {
+  const username = "eito1220"; // あなたのScratchのユーザー名
+  const proxy = "https://thingproxy.freeboard.io/fetch/";
+  const apiUrl = `https://api.scratch.mit.edu/users/${username}/projects`;
+
+  const res = await fetch(proxy + apiUrl);
+  const data = await res.json();
+  console.log(data);
+}
+
 
       try {
         console.log("データ取得中:", proxy + apiUrl);
@@ -94,6 +100,7 @@
   </script>
 </body>
 </html>
+
 
 
 
