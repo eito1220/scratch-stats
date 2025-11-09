@@ -1,118 +1,97 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>Scratch 統計グラフツール</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-  body {
-    font-family: "Segoe UI", sans-serif;
-    background: #f9fafb;
-    text-align: center;
-    padding: 40px;
-  }
-  input, button {
-    font-size: 16px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    margin: 5px;
-  }
-  button {
-    background: #4f46e5;
-    color: white;
-    cursor: pointer;
-  }
-  button:hover {
-    background: #3730a3;
-  }
-  #chart-container {
-    width: 90%;
-    max-width: 900px;
-    margin: 40px auto;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>Scratch 統計グラフ</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #f7f7f7;
+      text-align: center;
+      margin: 50px;
+    }
+    h1 {
+      color: #333;
+    }
+    canvas {
+      max-width: 800px;
+      margin: 30px auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+  </style>
 </head>
 <body>
+  <h1>Scratch 統計グラフ</h1>
+  <p>下のボタンを押すと、あなたの Scratch プロジェクト統計を取得します。</p>
+  <button onclick="loadStats()">統計を表示</button>
 
-  <h1>🎨 Scratch ユーザー統計グラフ</h1>
-  <input id="user" placeholder="Scratchユーザー名を入力">
-  <button onclick="loadStats()">表示</button>
+  <canvas id="myChart"></canvas>
 
-  <div id="summary"></div>
-  <div id="chart-container">
-    <canvas id="chart"></canvas>
-  </div>
+  <script>
+    async function loadStats() {
+      const username = "eito1220"; // ← あなたのScratchユーザー名
+      const proxy = "https://corsproxy.io/?";
+      const apiUrl = `https://api.scratch.mit.edu/users/${username}/projects`;
 
-<script>
-async function loadStats() {
-  const username = document.getElementById("user").value.trim();
-  if (!username) return alert("ユーザー名を入力してください！");
-  
-  const res = await fetch(`https://api.scratch.mit.edu/users/${username}/projects`);
-  const projects = await res.json();
+      try {
+        console.log("データ取得中:", apiUrl);
+        const res = await fetch(proxy + apiUrl);
 
-  if (!Array.isArray(projects) || projects.length === 0) {
-    document.getElementById("summary").innerHTML = `<p>作品が見つかりませんでした。</p>`;
-    return;
-  }
-
-  let totalLikes = 0, totalViews = 0;
-  const titles = [], likes = [], views = [];
-
-  projects.forEach(p => {
-    titles.push(p.title);
-    likes.push(p.stats.loves);
-    views.push(p.stats.views);
-    totalLikes += p.stats.loves;
-    totalViews += p.stats.views;
-  });
-
-  document.getElementById("summary").innerHTML = `
-    <h2>${username} さんの統計</h2>
-    <p>作品数: ${projects.length}</p>
-    <p>合計いいね数: ${totalLikes}</p>
-    <p>合計閲覧数: ${totalViews}</p>
-  `;
-
-  // グラフ描画
-  const ctx = document.getElementById('chart');
-  if (window.chart) window.chart.destroy(); // 既存グラフを削除
-  window.chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: titles,
-      datasets: [
-        {
-          label: 'いいね数',
-          data: likes,
-          backgroundColor: 'rgba(75, 192, 192, 0.7)'
-        },
-        {
-          label: '閲覧数',
-          data: views,
-          backgroundColor: 'rgba(255, 159, 64, 0.7)'
+        if (!res.ok) {
+          throw new Error(`HTTPエラー: ${res.status}`);
         }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'top' },
-        title: { display: true, text: `${username} さんの作品データ` }
-      },
-      scales: {
-        x: { ticks: { maxRotation: 90, minRotation: 45 } },
-        y: { beginAtZero: true }
+
+        const projects = await res.json();
+        console.log("取得したデータ:", projects);
+
+        if (!Array.isArray(projects) || projects.length === 0) {
+          alert("プロジェクトデータが見つかりません。ユーザー名を確認してください。");
+          return;
+        }
+
+        const ctx = document.getElementById("myChart").getContext("2d");
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: projects.map(p => p.title),
+            datasets: [{
+              label: "プロジェクトの閲覧数",
+              data: projects.map(p => p.stats.views),
+              backgroundColor: "rgba(54, 162, 235, 0.5)",
+              borderColor: "rgba(54, 162, 235, 1)",
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.error("読み込み失敗:", err);
+        alert("データ取得に失敗しました。時間をおいて再試行してください。");
       }
     }
-  });
-}
-</script>
-
+  </script>
 </body>
 </html>
+
