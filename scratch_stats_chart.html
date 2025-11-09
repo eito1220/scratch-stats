@@ -45,11 +45,11 @@
   <script>
     async function loadStats() {
       const username = "eito1220"; // ← あなたのScratchユーザー名
-      const proxy = "https://corsproxy.io/?";
+      const proxy = "https://thingproxy.freeboard.io/fetch/";
       const apiUrl = `https://api.scratch.mit.edu/users/${username}/projects`;
 
       try {
-        console.log("データ取得中:", apiUrl);
+        console.log("データ取得中:", proxy + apiUrl);
         const res = await fetch(proxy + apiUrl);
 
         if (!res.ok) {
@@ -88,10 +88,12 @@
         });
       } catch (err) {
         console.error("読み込み失敗:", err);
-        alert("データ取得に失敗しました。時間をおいて再試行してください。");
+        alert("データ取得に失敗しました。プロキシが一時的に停止している可能性があります。");
       }
     }
   </script>
 </body>
 </html>
+
+
 
